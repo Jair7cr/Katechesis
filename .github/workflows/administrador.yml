@@ -1,0 +1,33 @@
+# Cria o Administrador mestre. Antes, cadastre os segredos ADMIN_NOME e ADMIN_CPF (pode apagá-los depois).
+# A senha provisória aparece no resumo desta execução. Depois de entrar e trocá-la, apague a execução.
+name: Criar administrador mestre
+on: workflow_dispatch
+
+jobs:
+  criar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Criar conta
+        run: |
+          SAIDA=$(node db/scripts/criar-admin-mestre.mjs)
+          SENHA=$(echo "$SAIDA" | tail -1)
+          echo "::add-mask::$SENHA"
+          {
+            echo "### Administrador mestre"
+            echo
+            echo "$SAIDA" | head -1
+            echo
+            echo '```'
+            echo "$SENHA"
+            echo '```'
+            echo
+            echo "Entre no Katechesis com seu CPF e esta senha, troque-a e depois apague esta execução."
+          } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          DATABASE_URL_DONO: ${{ secrets.NEON_URL_DONO }}
+          ADMIN_NOME: ${{ secrets.ADMIN_NOME }}
+          ADMIN_CPF: ${{ secrets.ADMIN_CPF }}

@@ -1,0 +1,16 @@
+# Cloudflare Workers — um único Worker serve o app (arquivos estáticos) e a API (/api/*), no mesmo endereço.
+name = "katechesis"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+[assets]
+directory = "../web/dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+[observability]
+enabled = true
+
+# Segredo (configurado pelo GitHub Actions, nunca neste arquivo):
+#   DATABASE_URL — conexão do papel katechesis_api com o Neon

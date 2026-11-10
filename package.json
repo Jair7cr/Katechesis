@@ -1,0 +1,28 @@
+{
+  "name": "katechesis",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "migrar": "node db/scripts/migrar.mjs",
+    "testar": "vitest run",
+    "verificar-tipos": "npm run verificar-tipos -w @katechesis/compartilhado && npm run verificar-tipos -w @katechesis/api && npm run verificar-tipos -w @katechesis/web",
+    "construir": "npm run construir -w @katechesis/web",
+    "publicar": "npm run construir && npm run publicar -w @katechesis/api"
+  },
+  "devDependencies": {
+    "@hono/node-server": "^2.1.6",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0",
+    "pg": "^8.13.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0"
+  }
+}

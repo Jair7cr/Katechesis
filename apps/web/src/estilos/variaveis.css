@@ -1,0 +1,69 @@
+/**
+ * Tokens de design do Katechesis — herdados do design system do catequese-nsps.
+ * Azul de ação fixo (contraste garantido); a cor de IDENTIDADE e a de DESTAQUE vêm de cada paróquia
+ * (aplicadas em tempo de execução por src/tema.ts). Todos os pares de texto passam de 4,5:1.
+ */
+:root {
+  --cor-primaria: #1F3B66;
+  --cor-primaria-escura: #172D4F;
+  --cor-primaria-clara: #E8EEF6;
+  --cor-sobre-primaria: #ffffff;
+
+  --cor-identidade: #7B1E3A;
+  --cor-sobre-identidade: #ffffff;
+  --cor-destaque: #B8913F;
+
+  --cor-sucesso: #1E7A4C;
+  --cor-sucesso-texto: #1E6B43;
+  --cor-sucesso-clara: #E4F3EA;
+  --cor-aviso-escura: #8A5100;
+  --cor-aviso-clara: #FDF2DC;
+  --cor-erro: #B42318;
+  --cor-erro-texto: #9B1C14;
+  --cor-erro-clara: #FDECEA;
+  --cor-info: #245A8E;
+  --cor-info-clara: #E7F0FA;
+
+  --cor-fundo: #F7F4EE;
+  --cor-fundo-alt: #EFEAE0;
+  --cor-superficie: #ffffff;
+  --cor-superficie-alt: #FBF9F5;
+  --cor-texto: #1E2430;
+  --cor-texto-suave: #5A6170;
+  --cor-texto-apoio: #686E7B;
+  --cor-borda: #E2DCD0;
+  --cor-divisoria: #EEE9DF;
+  --cor-borda-campo: #8E877A;
+
+  --cor-menu: #16294A;
+  --cor-menu-fim: #0F1E37;
+  --cor-menu-hover: rgba(255, 255, 255, 0.07);
+  --cor-menu-ativo: rgba(255, 255, 255, 0.11);
+  --cor-menu-texto: #C7D0DE;
+  --cor-menu-rotulo: #9FB0C8;
+
+  --raio-sm: 6px;
+  --raio: 10px;
+  --raio-lg: 14px;
+  --sombra-sm: 0 1px 2px rgba(22, 41, 74, 0.06);
+  --sombra: 0 4px 14px rgba(22, 41, 74, 0.07);
+  --sombra-lg: 0 12px 32px rgba(22, 41, 74, 0.16);
+  --anel-foco: 0 0 0 3px rgba(31, 59, 102, 0.35);
+  --transicao: all 0.18s ease;
+
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 24px;
+  --esp-6: 32px;
+  --esp-7: 48px;
+
+  --fonte-titulo: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --fonte-corpo: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --alvo-toque: 44px;
+  --largura-menu: 248px;
+  --altura-topo: 60px;
+  --altura-nav-inferior: 64px;
+}

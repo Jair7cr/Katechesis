@@ -1,0 +1,40 @@
+# Backup diário do banco, criptografado ANTES de sair do GitHub, guardado no Cloudflare R2.
+# Sem a BACKUP_SENHA o arquivo não pode ser aberto: guarde uma cópia dela fora do GitHub.
+name: Backup diário
+on:
+  schedule:
+    - cron: '17 6 * * *'   # 03:17 no horário de Brasília
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      R2_ENDPOINT: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
+    steps:
+      - name: Instalar o cliente do Postgres
+        run: |
+          sudo apt-get install -y -q postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -q postgresql-client-18
+      - name: Exportar, criptografar e enviar
+        run: |
+          set -euo pipefail
+          ARQUIVO="katechesis-$(date -u +%Y-%m-%dT%H%MZ).dump"
+          /usr/lib/postgresql/18/bin/pg_dump --format=custom --no-owner --no-privileges -d "$NEON_URL_DONO" -f "$ARQUIVO"
+          gpg --batch --yes --pinentry-mode loopback --symmetric --cipher-algo AES256 \
+              --passphrase-fd 3 -o "$ARQUIVO.gpg" "$ARQUIVO" 3<<< "$BACKUP_SENHA"
+          rm "$ARQUIVO"
+          aws s3 cp "$ARQUIVO.gpg" "s3://$R2_BUCKET/diario/$ARQUIVO.gpg" --endpoint-url "$R2_ENDPOINT" --only-show-errors
+          echo "Backup enviado: diario/$ARQUIVO.gpg ($(du -h "$ARQUIVO.gpg" | cut -f1))" >> "$GITHUB_STEP_SUMMARY"
+        env:
+          NEON_URL_DONO: ${{ secrets.NEON_URL_DONO }}
+          BACKUP_SENHA: ${{ secrets.BACKUP_SENHA }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      - name: Limpar sessões e registros vencidos
+        run: /usr/lib/postgresql/18/bin/psql -d "$NEON_URL_DONO" -c 'select app.limpar_expirados()'
+        env:
+          NEON_URL_DONO: ${{ secrets.NEON_URL_DONO }}

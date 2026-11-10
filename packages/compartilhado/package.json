@@ -1,0 +1,1 @@
+{"name":"@katechesis/compartilhado","private":true,"type":"module","main":"src/index.ts","scripts":{"verificar-tipos":"tsc --noEmit -p ."}}

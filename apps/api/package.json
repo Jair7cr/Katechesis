@@ -1,0 +1,1 @@
+{"name":"@katechesis/api","private":true,"type":"module","scripts":{"verificar-tipos":"tsc --noEmit -p .","publicar":"wrangler deploy"},"dependencies":{"@katechesis/compartilhado":"*","@neondatabase/serverless":"^1.2.0","hono":"^4.13.17","zod":"^3.25.76"},"devDependencies":{"@cloudflare/workers-types":"^5.20261109.1","wrangler":"^4.159.0"}}

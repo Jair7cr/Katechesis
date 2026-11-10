@@ -1,0 +1,49 @@
+# Toda semana: baixa o backup mais recente, abre com a BACKUP_SENHA e restaura num Postgres descartável.
+# Se falhar, o backup não serve — o GitHub avisa por e-mail.
+name: Teste de restauração
+on:
+  schedule:
+    - cron: '41 7 * * 1'   # segundas, 04:41 no horário de Brasília
+  workflow_dispatch:
+
+jobs:
+  restaurar:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      R2_ENDPOINT: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      PGURL: postgres://postgres:postgres@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar o cliente do Postgres
+        run: |
+          sudo apt-get install -y -q postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -q postgresql-client-18
+      - name: Baixar o backup mais recente
+        run: |
+          set -euo pipefail
+          ULTIMO=$(aws s3 ls "s3://$R2_BUCKET/diario/" --endpoint-url "$R2_ENDPOINT" | sort | tail -1 | awk '{print $4}')
+          test -n "$ULTIMO" || { echo "Nenhum backup encontrado."; exit 1; }
+          aws s3 cp "s3://$R2_BUCKET/diario/$ULTIMO" backup.dump.gpg --endpoint-url "$R2_ENDPOINT" --only-show-errors
+          echo "Testando: $ULTIMO" >> "$GITHUB_STEP_SUMMARY"
+      - name: Abrir e restaurar
+        run: |
+          set -euo pipefail
+          gpg --batch --yes --pinentry-mode loopback --passphrase-fd 3 -o backup.dump -d backup.dump.gpg 3<<< "$BACKUP_SENHA"
+          /usr/lib/postgresql/18/bin/pg_restore --no-owner --no-privileges --exit-on-error -d "$PGURL" backup.dump
+        env:
+          BACKUP_SENHA: ${{ secrets.BACKUP_SENHA }}
+      - name: Conferir o conteúdo
+        run: /usr/lib/postgresql/18/bin/psql -v ON_ERROR_STOP=1 -d "$PGURL" -f db/scripts/conferir-restauracao.sql >> "$GITHUB_STEP_SUMMARY"

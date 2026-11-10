@@ -1,0 +1,8 @@
+node_modules/
+apps/web/dist/
+apps/api/.wrangler/
+.dev.vars
+.env
+*.dump
+*.gpg
+.DS_Store

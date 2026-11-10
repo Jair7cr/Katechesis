@@ -1,0 +1,39 @@
+# Rode UMA vez (Actions > Primeira configuração > Run workflow) depois de cadastrar os segredos.
+# Também serve para trocar a senha do papel da API, se um dia for preciso.
+# Gera a senha do papel katechesis_api, cria as tabelas, publica o sistema e entrega a conexão ao Worker.
+# A senha nunca aparece no log e não fica guardada no GitHub: só no Neon e no Cloudflare.
+name: Primeira configuração
+on: workflow_dispatch
+
+jobs:
+  configurar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Gerar senha da API e montar a conexão
+        id: senha
+        run: |
+          SENHA=$(openssl rand -hex 24)
+          echo "::add-mask::$SENHA"
+          echo "API_DB_SENHA=$SENHA" >> "$GITHUB_ENV"
+          URL=$(node db/scripts/url-api.mjs "$NEON_URL_DONO" "$SENHA")
+          echo "::add-mask::$URL"
+          echo "DATABASE_URL=$URL" >> "$GITHUB_ENV"
+        env:
+          NEON_URL_DONO: ${{ secrets.NEON_URL_DONO }}
+      - name: Criar tabelas e o papel da API
+        run: npm run migrar
+        env:
+          DATABASE_URL_DONO: ${{ secrets.NEON_URL_DONO }}
+      - run: npm run construir
+      - name: Publicar e gravar a conexão no Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/api
+          command: deploy
+          secrets: DATABASE_URL
